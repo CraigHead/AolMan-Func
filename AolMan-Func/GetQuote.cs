@@ -34,18 +34,23 @@ namespace AolManFunc
                 await httpResponseMessage.Content.LoadIntoBufferAsync();
                 string stringResult = await httpResponseMessage.Content.ReadAsStringAsync();
 
-                if (!string.IsNullOrWhiteSpace(stringResult))
-                {
-                    lines = await ReadAllLines(stringResult);
+                if (string.IsNullOrWhiteSpace(stringResult))
+                    return req.CreateResponse(HttpStatusCode.InternalServerError);
 
-                    Random rand = new Random();
-                    string value = lines[rand.Next(lines.Length)];
-                    //return req.CreateResponse(HttpStatusCode.OK, value);
-                    return new HttpResponseMessage
-                    {
-                        Content = new StringContent(value, Encoding.UTF8, "text/plain")
-                    };
+
+                lines = await ReadAllLines(stringResult);
+
+                int index;
+                using (CryptoRandom random = new CryptoRandom())
+                {
+                    index = random.Next(lines.Length);
                 }
+                string value = lines[index];
+                    
+                return new HttpResponseMessage
+                {
+                    Content = new StringContent(value, Encoding.UTF8, "text/plain")
+                };
             }
 
             return req.CreateResponse(HttpStatusCode.InternalServerError);
